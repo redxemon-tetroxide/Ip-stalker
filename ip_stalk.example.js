@@ -1,3 +1,4 @@
+//this is for the html veiw you can use it if you wanna use the html
 const express = require("express");
 const cors = require("cors");
 const os = require("os");
