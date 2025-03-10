@@ -28,8 +28,8 @@ An real-time Device Tracker Dashboard that monitors and displays network and dev
 
 1️⃣ Clone the Repository
 
-git clone https://github.com/your-username/device-tracker-dashboard.git
-cd device-tracker-dashboard
+git clone (https://github.com/redxemon-tetroxide/Ip-stalker.git)
+cd "Ip-stalker.git) 
 
 2️⃣ Install Dependencies
 
@@ -37,7 +37,7 @@ npm install
 
 3️⃣ Start the Server
 
-node server.js
+node ip_stalk.js
 
 4️⃣ Open in Browser
 
@@ -121,7 +121,7 @@ Node.js & Express – Backend server handling.
 
 🖊️ Author
 
-🔹 Created by: Redwan
+🔹 Created by: Redwan Ahemed
 🔹 Portfolio: https://global-redwans-apis.onrender.com/
 
 🚀 Built with passion, precision, and pure aesthetics. 🚀
