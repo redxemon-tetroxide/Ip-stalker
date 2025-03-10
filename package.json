@@ -1,31 +1,38 @@
 {
-  "name": "device-tracker-dashboard",
+  "name": "ip-stalker",
   "version": "1.0.0",
-  "description": "A real-time device tracker dashboard with a stunning UI, built with Material Design.",
+  "description": "A real-time IP tracking and device monitoring tool with advanced network and system analysis.",
   "main": "ip_stalk.js",
   "scripts": {
     "start": "node ip_stalk.js",
     "dev": "nodemon ip_stalk.js"
   },
   "keywords": [
-    "device tracker",
-    "dashboard",
-    "real-time",
-    "nodejs",
-    "material design",
-    "responsive"
+    "IP tracking",
+    "device monitoring",
+    "network scanner",
+    "system info",
+    "real-time tracking",
+    "VPN detection"
   ],
   "author": "Redwan",
   "license": "MIT",
   "dependencies": {
     "express": "^4.17.1",
+    "cors": "^2.8.5",
+    "os": "^0.1.2",
+    "child_process": "^1.0.2",
+    "useragent": "^2.3.0",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
     "nodemon": "^2.0.15"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=14.0.0"
   },
-  "repository": {
+    "repository": {
     "type": "git",
     "url": "git+https://github.com/redxemon-tetroxide/Ip-stalker.git"
   },
@@ -33,4 +40,4 @@
     "url": "https://github.com/redxemon-tetroxide/Ip-stalker.git/issues"
   },
   "homepage": "https://github.com/redxemon-tetroxide/Ip-stalker.git#readme"
-      }
+}
