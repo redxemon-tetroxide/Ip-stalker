@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Tracker Dashboard</title>
+    <style>
+        /* Material Design Basics */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            font-weight: 500;
+        }
+
+        /* Header Section */
+        header {
+            background-color: #6200ea;
+            color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 38px;
+            text-transform: uppercase;
+        }
+
+        header p {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        /* Main Section */
+        main {
+            margin-top: 40px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .card {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            margin-bottom: 25px;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            font-size: 26px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            display: block;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #ddd;
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #6200ea;
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #e6e6e6;
+            cursor: pointer;
+        }
+
+        /* Button Styling */
+        button {
+            background-color: #03dac6;
+            color: white;
+            font-size: 18px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        /* Glowing Hover Effect */
+        button:hover {
+            background-color: #018786;
+            transform: translateY(-3px);
+            box-shadow: 0 0 12px rgba(1, 135, 134, 0.8), 0 0 20px rgba(1, 135, 134, 0.6);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            header h1 {
+                font-size: 30px;
+            }
+
+            header p {
+                font-size: 16px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .card h2 {
+                font-size: 22px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            button {
+                font-size: 16px;
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 26px;
+            }
+
+            header p {
+                font-size: 14px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .card h2 {
+                font-size: 20px;
+            }
+
+            table {
+                font-size: 12px;
+                display: block;
+                overflow-x: auto;
+            }
+
+            button {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Device Tracker Dashboard</h1>
+        <p>Real-time monitoring of network and device activity</p>
+    </header>
+
+    <main>
+        <div class="card">
+            <h2>Latest Tracking Information</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Public IP</th>
+                            <th>Local IP</th>
+                            <th>Device Name</th>
+                            <th>VPN Status</th>
+                            <th>Camera/Mic Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-list">
+                        <!-- Dynamic content will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            <button id="download-btn">Download Data</button>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; Ip Based Device Tracker - Created By Redwan</p>
+    </footer>
+
+    <script>
+        // Fetch data from the server and populate the table
+        async function fetchData() {
+            try {
+                const response = await fetch('/trackedData'); // Adjust this to your actual endpoint
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                const dataList = document.getElementById('data-list');
+                dataList.innerHTML = ''; // Clear previous data
+
+                data.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.timestamp}</td>
+                        <td>${item.public_ip}</td>
+                        <td>${item.local_ip}</td>
+                        <td>${item.device_name}</td>
+                        <td>${item.vpn_status}</td>
+                        <td>${item.cam_mic_status}</td>
+                    `;
+                    dataList.appendChild(row);
+                });
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                document.getElementById('data-list').innerHTML = `
+                    <tr><td colspan="6">Failed to load data</td></tr>
+                `;
+            }
+        }
+
+        // Download data as a JSON file
+        document.getElementById('download-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/trackedData'); // Adjust this to your actual endpoint
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                const blob = new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'tracked_data.json';
+                link.click();
+            } catch (err) {
+                console.error('Error downloading data:', err);
+            }
+        });
+
+        // Load data when the page loads
+        window.onload = fetchData;
+    </script>
+
+</body>
+</html>
