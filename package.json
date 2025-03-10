@@ -1,0 +1,36 @@
+{
+  "name": "device-tracker-dashboard",
+  "version": "1.0.0",
+  "description": "A real-time device tracker dashboard with a stunning UI, built with Material Design.",
+  "main": "ip_stalk.js",
+  "scripts": {
+    "start": "node ip_stalk.js",
+    "dev": "nodemon ip_stalk.js"
+  },
+  "keywords": [
+    "device tracker",
+    "dashboard",
+    "real-time",
+    "nodejs",
+    "material design",
+    "responsive"
+  ],
+  "author": "Redwan",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nodemon": "^2.0.15"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/redxemon-tetroxide/Ip-stalker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/redxemon-tetroxide/Ip-stalker.git/issues"
+  },
+  "homepage": "https://github.com/redxemon-tetroxide/Ip-stalker.git#readme"
+      }
